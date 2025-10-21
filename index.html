@@ -83,7 +83,7 @@
       } else {
         authPanel.style.display = 'none';
         loginBtnTop.textContent = 'Bejelentkezés';
-        username.style.display = 'none'; // rejtsd el a felhasználónév mezőt, ha nyitott volt
+        username.style.display = 'none'; // rejtsd el a felhasználónév mezőt
       }
     };
 
@@ -127,14 +127,16 @@
     auth.onAuthStateChanged(user => {
       if (user) {
         postPanel.style.display = 'block'; // Posztoló mező
-        logoutBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'inline-block'; // Kijelentkezés gomb látszik
         logoutBtn.textContent = "Kijelentkezés (" + (user.displayName || user.email) + ")";
-        loginBtnTop.style.display = 'none';
-        authPanel.style.display = 'none';
+        loginBtnTop.style.display = 'none'; // Bejelentkezés gomb elrejtése
+        authPanel.style.display = 'none'; // Panel bezárása
       } else {
-        postPanel.style.display = 'none';
-        logoutBtn.style.display = 'none';
-        loginBtnTop.style.display = 'inline-block';
+        postPanel.style.display = 'none'; // Posztoló eltűnik
+        logoutBtn.style.display = 'none'; // Kijelentkezés gomb eltűnik
+        loginBtnTop.style.display = 'inline-block'; // Bejelentkezés gomb látszik
+        authPanel.style.display = 'none'; // Panel alapból rejtve
+        username.style.display = 'none'; // Felhasználónév mező rejtve
       }
     });
 
