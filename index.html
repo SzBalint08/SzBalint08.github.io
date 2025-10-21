@@ -27,8 +27,10 @@
     <input id="username" placeholder="Felhasználónév" />
     <button id="registerBtn">Regisztráció</button>
     <button id="loginBtn">Bejelentkezés</button>
-    <button id="logoutBtn" style="display:none;">Kijelentkezés</button>
   </div>
+
+  <!-- Kijelentkezés gomb (külön, csak bejelentkezett felhasználóknak) -->
+  <button id="logoutBtn" style="display:none; margin-top:1rem;"></button>
 
   <!-- Posztoló panel (csak bejelentkezett felhasználóknak) -->
   <div id="postPanel">
@@ -126,17 +128,17 @@
     // Auth állapot figyelése
     auth.onAuthStateChanged(user => {
       if (user) {
-        postPanel.style.display = 'block'; // Posztoló mező
-        logoutBtn.style.display = 'inline-block'; // Kijelentkezés gomb látszik
+        postPanel.style.display = 'block'; // posztoló mező
+        logoutBtn.style.display = 'inline-block'; // kijelentkezés gomb látszik
         logoutBtn.textContent = "Kijelentkezés (" + (user.displayName || user.email) + ")";
-        loginBtnTop.style.display = 'none'; // Bejelentkezés gomb elrejtése
-        authPanel.style.display = 'none'; // Panel bezárása
+        loginBtnTop.style.display = 'none'; // Bejelentkezés gomb elrejtve
+        authPanel.style.display = 'none'; // panel alapból rejtve
       } else {
-        postPanel.style.display = 'none'; // Posztoló eltűnik
-        logoutBtn.style.display = 'none'; // Kijelentkezés gomb eltűnik
+        postPanel.style.display = 'none'; // posztoló eltűnik
+        logoutBtn.style.display = 'none'; // kijelentkezés gomb eltűnik
         loginBtnTop.style.display = 'inline-block'; // Bejelentkezés gomb látszik
-        authPanel.style.display = 'none'; // Panel alapból rejtve
-        username.style.display = 'none'; // Felhasználónév mező rejtve
+        authPanel.style.display = 'none'; // panel rejtve
+        username.style.display = 'none'; // felhasználónév rejtve
       }
     });
 
