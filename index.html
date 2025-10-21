@@ -1,10 +1,134 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Bálint hírek</title>
-    </head>
-    <body>
-        <header>Bálint teszt oldala</header>
-        <a href="kezdolap.html">Bálint hírek</a>
-    </body>
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Közösségi Blog</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; }
+    input, textarea, button { width: 100%; padding: .5rem; margin: .3rem 0; box-sizing: border-box; }
+    button { cursor: pointer; }
+    .post { border-bottom: 1px solid #ccc; padding-bottom: .5rem; margin-bottom: .8rem; }
+    .meta { color: gray; font-size: .9rem; }
+    #wall { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Közösségi Blog</h1>
+
+  <div id="auth">
+    <h3>Bejelentkezés / Regisztráció</h3>
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Jelszó" />
+    <button id="loginBtn">Bejelentkezés</button>
+    <button id="registerBtn">Regisztráció</button>
+  </div>
+
+  <div id="wall">
+    <p>Bejelentkezve: <span id="userEmail"></span> <button id="logoutBtn">Kijelentkezés</button></p>
+    <textarea id="message" rows="4" placeholder="Írj egy bejegyzést..."></textarea>
+    <button id="postBtn">Küldés</button>
+
+    <h3>Bejegyzések</h3>
+    <div id="posts"></div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyC5PGp0CIL-NGzv0bh3EEfdr4JjHjBp4FE",
+        authDomain: "szucsbalinthu.firebaseapp.com",
+        projectId: "szucsbalinthu",
+        storageBucket: "szucsbalinthu.firebasestorage.app",
+        messagingSenderId: "226319656079",
+        appId: "1:226319656079:web:d86b6062d0fd4b6499bcfa",
+        measurementId: "G-F5GPHLJS9Y"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const wall = document.getElementById('wall');
+    const authDiv = document.getElementById('auth');
+    const userEmail = document.getElementById('userEmail');
+    const message = document.getElementById('message');
+    const postBtn = document.getElementById('postBtn');
+    const postsDiv = document.getElementById('posts');
+
+    // Regisztráció
+    registerBtn.onclick = async () => {
+      try {
+        await auth.createUserWithEmailAndPassword(email.value, password.value);
+        alert('Sikeres regisztráció!');
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    // Bejelentkezés
+    loginBtn.onclick = async () => {
+      try {
+        await auth.signInWithEmailAndPassword(email.value, password.value);
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    // Kijelentkezés
+    logoutBtn.onclick = () => auth.signOut();
+
+    // Auth állapot figyelése
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        wall.style.display = 'block';
+        authDiv.style.display = 'none';
+        userEmail.textContent = user.email;
+      } else {
+        wall.style.display = 'none';
+        authDiv.style.display = 'block';
+      }
+    });
+
+    // Posztolás (csak engedélyezett felhasználóknak)
+    postBtn.onclick = async () => {
+      const text = message.value.trim();
+      if (!text) return;
+      try {
+        await db.collection('posts').add({
+          text,
+          author: auth.currentUser.email,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        message.value = '';
+      } catch (err) {
+        alert('❌ Nincs jogosultságod írni erre a falra.');
+      }
+    };
+
+    // Posztok megjelenítése
+    db.collection('posts').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+      postsDiv.innerHTML = '';
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString() : '';
+        postsDiv.innerHTML += `
+          <div class="post">
+            <div class="meta">${d.author} – ${date}</div>
+            <div>${d.text}</div>
+          </div>
+        `;
+      });
+    });
+  </script>
+</body>
 </html>
