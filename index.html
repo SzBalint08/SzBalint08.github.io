@@ -10,21 +10,21 @@
     button { cursor: pointer; }
     .post { border-bottom: 1px solid #ccc; padding-bottom: .5rem; margin-bottom: .8rem; }
     .meta { color: gray; font-size: .9rem; }
-    #authPanel, #postPanel { display: none; }
+    #authPanel, #postPanel, #username { display: none; }
     #loginBtnTop { margin-bottom: 1rem; }
   </style>
 </head>
 <body>
   <h1>Közösségi Blog</h1>
 
-  <!-- Bejelentkezés gomb alapállapotban -->
+  <!-- Bejelentkezés / Bezárás gomb -->
   <button id="loginBtnTop">Bejelentkezés</button>
 
   <!-- Bejelentkező / Regisztráló panel -->
   <div id="authPanel">
-    <input id="username" placeholder="Felhasználónév (csak regisztrációhoz)" />
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Jelszó" />
+    <input id="username" placeholder="Felhasználónév" />
     <button id="registerBtn">Regisztráció</button>
     <button id="loginBtn">Bejelentkezés</button>
     <button id="logoutBtn" style="display:none;">Kijelentkezés</button>
@@ -46,7 +46,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
-    // 🔴 Ide másold be a saját Firebase configodat
+    // 🔴 Ide másold a saját Firebase configodat
     const firebaseConfig = {
       apiKey: "AIzaSyC5PGp0CIL-NGzv0bh3EEfdr4JjHjBp4FE",
       authDomain: "szucsbalinthu.firebaseapp.com",
@@ -75,11 +75,29 @@
     const postBtn = document.getElementById('postBtn');
     const postsDiv = document.getElementById('posts');
 
-    // Bejelentkezés gomb a tetején: mutatja a panelt
-    loginBtnTop.onclick = () => authPanel.style.display = 'block';
+    // Bejelentkezés gomb a tetején: nyit / zár panel
+    loginBtnTop.onclick = () => {
+      if (authPanel.style.display === 'none' || authPanel.style.display === '') {
+        authPanel.style.display = 'block';
+        loginBtnTop.textContent = 'Bezárás';
+      } else {
+        authPanel.style.display = 'none';
+        loginBtnTop.textContent = 'Bejelentkezés';
+        username.style.display = 'none'; // rejtsd el a felhasználónév mezőt, ha nyitott volt
+      }
+    };
+
+    // Regisztráció gomb: felhasználónév mező előjön
+    registerBtn.onclick = () => {
+      username.style.display = 'block';
+    };
 
     // Regisztráció felhasználónévvel
     registerBtn.onclick = async () => {
+      if (username.style.display === 'none') {
+        username.style.display = 'block';
+        return;
+      }
       const uname = username.value.trim();
       if (!uname) return alert("Adj meg egy felhasználónevet!");
       try {
@@ -111,9 +129,12 @@
         postPanel.style.display = 'block'; // Posztoló mező
         logoutBtn.style.display = 'inline-block';
         logoutBtn.textContent = "Kijelentkezés (" + (user.displayName || user.email) + ")";
+        loginBtnTop.style.display = 'none';
+        authPanel.style.display = 'none';
       } else {
         postPanel.style.display = 'none';
         logoutBtn.style.display = 'none';
+        loginBtnTop.style.display = 'inline-block';
       }
     });
 
