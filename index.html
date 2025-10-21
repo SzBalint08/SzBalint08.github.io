@@ -28,25 +28,25 @@
     <p>Bejelentkezve: <span id="userEmail"></span> <button id="logoutBtn">Kijelentkezés</button></p>
     <textarea id="message" rows="4" placeholder="Írj egy bejegyzést..."></textarea>
     <button id="postBtn">Küldés</button>
-
     <h3>Bejegyzések</h3>
     <div id="posts"></div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase CDN (stabil compat verzió) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
+    // 🔴 IDE MÁSOLD BE A SAJÁT FIREBASE CONFIGODAT
     const firebaseConfig = {
-    apiKey: "AIzaSyC5PGp0CIL-NGzv0bh3EEfdr4JjHjBp4FE",
-    authDomain: "szucsbalinthu.firebaseapp.com",
-    projectId: "szucsbalinthu",
-    storageBucket: "szucsbalinthu.appspot.com", // <-- EZT kell átírni!
-    messagingSenderId: "226319656079",
-    appId: "1:226319656079:web:d86b6062d0fd4b6499bcfa",
-    measurementId: "G-F5GPHLJS9Y"
+        apiKey: "AIzaSyC5PGp0CIL-NGzv0bh3EEfdr4JjHjBp4FE",
+        authDomain: "szucsbalinthu.firebaseapp.com",
+        projectId: "szucsbalinthu",
+        storageBucket: "szucsbalinthu.firebasestorage.app",
+        messagingSenderId: "226319656079",
+        appId: "1:226319656079:web:d86b6062d0fd4b6499bcfa",
+        measurementId: "G-F5GPHLJS9Y"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -69,9 +69,9 @@
     registerBtn.onclick = async () => {
       try {
         await auth.createUserWithEmailAndPassword(email.value, password.value);
-        alert('Sikeres regisztráció!');
+        alert('✅ Sikeres regisztráció!');
       } catch (err) {
-        alert(err.message);
+        alert('Hiba: ' + err.message);
       }
     };
 
@@ -80,7 +80,7 @@
       try {
         await auth.signInWithEmailAndPassword(email.value, password.value);
       } catch (err) {
-        alert(err.message);
+        alert('Hiba: ' + err.message);
       }
     };
 
@@ -99,7 +99,7 @@
       }
     });
 
-    // Posztolás (csak engedélyezett felhasználóknak)
+    // Posztolás
     postBtn.onclick = async () => {
       const text = message.value.trim();
       if (!text) return;
@@ -111,11 +111,11 @@
         });
         message.value = '';
       } catch (err) {
-        alert('❌ Nincs jogosultságod írni erre a falra.');
+        alert('❌ Hiba: ' + err.message);
       }
     };
 
-    // Posztok megjelenítése
+    // Posztok megjelenítése valós időben
     db.collection('posts').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
       postsDiv.innerHTML = '';
       snapshot.forEach(doc => {
@@ -125,8 +125,7 @@
           <div class="post">
             <div class="meta">${d.author} – ${date}</div>
             <div>${d.text}</div>
-          </div>
-        `;
+          </div>`;
       });
     });
   </script>
