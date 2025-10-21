@@ -10,13 +10,18 @@
     button { cursor: pointer; }
     .post { border-bottom: 1px solid #ccc; padding-bottom: .5rem; margin-bottom: .8rem; }
     .meta { color: gray; font-size: .9rem; }
+    #authPanel, #postPanel { display: none; }
+    #loginBtnTop { margin-bottom: 1rem; }
   </style>
 </head>
 <body>
   <h1>Közösségi Blog</h1>
 
-  <div id="auth">
-    <h3>Regisztráció / Bejelentkezés</h3>
+  <!-- Bejelentkezés gomb alapállapotban -->
+  <button id="loginBtnTop">Bejelentkezés</button>
+
+  <!-- Bejelentkező / Regisztráló panel -->
+  <div id="authPanel">
     <input id="username" placeholder="Felhasználónév (csak regisztrációhoz)" />
     <input id="email" type="email" placeholder="Email" />
     <input id="password" type="password" placeholder="Jelszó" />
@@ -25,9 +30,13 @@
     <button id="logoutBtn" style="display:none;">Kijelentkezés</button>
   </div>
 
-  <textarea id="message" rows="4" placeholder="Írj egy bejegyzést..."></textarea>
-  <button id="postBtn">Küldés</button>
+  <!-- Posztoló panel (csak bejelentkezett felhasználóknak) -->
+  <div id="postPanel">
+    <textarea id="message" rows="4" placeholder="Írj egy bejegyzést..."></textarea>
+    <button id="postBtn">Küldés</button>
+  </div>
 
+  <!-- Blog bejegyzések -->
   <h3>Bejegyzések</h3>
   <div id="posts"></div>
 
@@ -37,6 +46,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
   <script>
+    // 🔴 Ide másold be a saját Firebase configodat
     const firebaseConfig = {
       apiKey: "AIzaSyC5PGp0CIL-NGzv0bh3EEfdr4JjHjBp4FE",
       authDomain: "szucsbalinthu.firebaseapp.com",
@@ -51,15 +61,22 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // HTML elemek
+    const loginBtnTop = document.getElementById('loginBtnTop');
+    const authPanel = document.getElementById('authPanel');
     const username = document.getElementById('username');
     const email = document.getElementById('email');
     const password = document.getElementById('password');
     const registerBtn = document.getElementById('registerBtn');
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
+    const postPanel = document.getElementById('postPanel');
     const message = document.getElementById('message');
     const postBtn = document.getElementById('postBtn');
     const postsDiv = document.getElementById('posts');
+
+    // Bejelentkezés gomb a tetején: mutatja a panelt
+    loginBtnTop.onclick = () => authPanel.style.display = 'block';
 
     // Regisztráció felhasználónévvel
     registerBtn.onclick = async () => {
@@ -69,7 +86,7 @@
         await auth.createUserWithEmailAndPassword(email.value, password.value);
         await auth.currentUser.updateProfile({ displayName: uname });
         alert("✅ Sikeres regisztráció!");
-        username.value = '';
+        username.value = email.value = password.value = '';
       } catch (err) {
         alert("Hiba: " + err.message);
       }
@@ -79,6 +96,7 @@
     loginBtn.onclick = async () => {
       try {
         await auth.signInWithEmailAndPassword(email.value, password.value);
+        email.value = password.value = '';
       } catch (err) {
         alert("Hiba: " + err.message);
       }
@@ -87,23 +105,23 @@
     // Kijelentkezés
     logoutBtn.onclick = () => auth.signOut();
 
-    // Auth állapot figyelése (csak a felhasználónevet és kijelentkezés gombot mutatja)
+    // Auth állapot figyelése
     auth.onAuthStateChanged(user => {
       if (user) {
+        postPanel.style.display = 'block'; // Posztoló mező
         logoutBtn.style.display = 'inline-block';
         logoutBtn.textContent = "Kijelentkezés (" + (user.displayName || user.email) + ")";
       } else {
+        postPanel.style.display = 'none';
         logoutBtn.style.display = 'none';
       }
     });
 
-    // Posztolás (csak bejelentkezett felhasználóknak)
+    // Posztolás
     postBtn.onclick = async () => {
       const text = message.value.trim();
       if (!text) return;
-      if (!auth.currentUser) {
-        return alert("❌ Csak bejelentkezett felhasználók írhatnak bejegyzést!");
-      }
+      if (!auth.currentUser) return alert("❌ Csak bejelentkezett felhasználók írhatnak!");
       try {
         await db.collection('posts').add({
           text,
